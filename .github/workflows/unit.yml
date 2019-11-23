@@ -1,0 +1,35 @@
+name: Unit tests
+
+on: [ "push", "pull_request" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        emacs_version:
+          - 26.1
+          - 26.2
+          - 26.3
+          - snapshot
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v6
+
+      - name: Install Emacs ${{ matrix.emacs_version }}
+        uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs_version }}
+
+      - name: Install cask
+        run: nix-env -iA nixpkgs.cask
+
+      - name: Install Emacs dependencies using Cask
+        run: cask install
+
+      - name: Run tests
+        run: make test
